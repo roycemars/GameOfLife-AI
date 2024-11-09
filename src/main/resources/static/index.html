@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Game of Life</title>
+    <style>
+        body {
+            background-image: url('https://t.ly/mHmrl');
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-size: cover;
+            background-position: center;
+            color: white;
+        }
+        table { border-collapse: collapse; }
+        td { width: 10px; height: 10px; border: 1px solid #ddd; background-color: rgba(255, 255, 255, 0.6); }
+        .alive { background-color: purple; }
+        button { background-color: purple; color: white; border: none; padding: 10px; margin: 5px; cursor: pointer; }
+        button:hover { background-color: darkviolet; }
+        input { padding: 5px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Game of Life</h1>
+    <button onclick="startGame()">Start Game</button>
+    <button onclick="updateGame()">Next Generation</button>
+    <input type="number" id="interval" placeholder="Interval in seconds" value="1">
+    <button onclick="startAutoUpdate()">Start Auto Update</button>
+    <button onclick="stopAutoUpdate()">Stop Auto Update</button>
+    <table id="gameGrid"></table>
+
+    <script>
+        const rows = 20;
+        const cols = 20;
+        let intervalId;
+
+        function startGame() {
+            fetch(`/game/start?rows=${rows}&cols=${cols}`, { method: 'POST' })
+                .then(() => updateGrid());
+        }
+
+        function updateGame() {
+            fetch('/game/update', { method: 'POST' })
+                .then(() => updateGrid());
+        }
+
+        function updateGrid() {
+            fetch('/game/grid')
+                .then(response => response.json())
+                .then(grid => {
+                    const table = document.getElementById('gameGrid');
+                    table.innerHTML = '';
+                    for (let i = 0; i < rows; i++) {
+                        const row = document.createElement('tr');
+                        for (let j = 0; j < cols; j++) {
+                            const cell = document.createElement('td');
+                            if (grid[i][j]) {
+                                cell.classList.add('alive');
+                            }
+                            row.appendChild(cell);
+                        }
+                        table.appendChild(row);
+                    }
+                });
+        }
+
+        function startAutoUpdate() {
+            const interval = document.getElementById('interval').value * 1000;
+            if (intervalId) {
+                clearInterval(intervalId);
+            }
+            intervalId = setInterval(updateGame, interval);
+        }
+
+        function stopAutoUpdate() {
+            clearInterval(intervalId);
+        }
+    </script>
+</body>
+</html>
